@@ -13,6 +13,7 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.MediaItem;
@@ -80,8 +81,6 @@ final class VideoPlayer {
     builder.setRenderersFactory(new DefaultRenderersFactory(context.getApplicationContext()).setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON));
     ExoPlayer exoPlayer = builder.build();
     Uri uri = Uri.parse(dataSource);
-    Log.d("YourTag", "This is a debug message.");
-
     buildHttpDataSourceFactory(httpHeaders);
     DataSource.Factory dataSourceFactory =
             new DefaultDataSource.Factory(context, httpDataSourceFactory);
