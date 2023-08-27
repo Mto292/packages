@@ -65,23 +65,26 @@ final class VideoPlayer {
   private DefaultHttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory();
 
   VideoPlayer(
-      Context context,
-      EventChannel eventChannel,
-      TextureRegistry.SurfaceTextureEntry textureEntry,
-      String dataSource,
-      String formatHint,
-      @NonNull Map<String, String> httpHeaders,
-      VideoPlayerOptions options) {
+          Context context,
+          EventChannel eventChannel,
+          TextureRegistry.SurfaceTextureEntry textureEntry,
+          String dataSource,
+          String formatHint,
+          @NonNull Map<String, String> httpHeaders,
+          VideoPlayerOptions options) {
     this.eventChannel = eventChannel;
     this.textureEntry = textureEntry;
     this.options = options;
 
-    ExoPlayer exoPlayer = new ExoPlayer.Builder(context).build();
+    ExoPlayer.Builder builder = new ExoPlayer.Builder(context);
+    builder.setRenderersFactory(new DefaultRenderersFactory(context.getApplicationContext()).setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON));
+    ExoPlayer exoPlayer = builder.build();
     Uri uri = Uri.parse(dataSource);
+    Log.d("YourTag", "This is a debug message.");
 
     buildHttpDataSourceFactory(httpHeaders);
     DataSource.Factory dataSourceFactory =
-        new DefaultDataSource.Factory(context, httpDataSourceFactory);
+            new DefaultDataSource.Factory(context, httpDataSourceFactory);
 
     MediaSource mediaSource = buildMediaSource(uri, dataSourceFactory, formatHint);
 
