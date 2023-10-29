@@ -136,6 +136,32 @@ class PositionMessage {
   }
 }
 
+class TrackMessage {
+  TrackMessage({
+    required this.textureId,
+    required this.language,
+  });
+
+  int textureId;
+
+  String language;
+
+  Object encode() {
+    return <Object?>[
+      textureId,
+      language,
+    ];
+  }
+
+  static TrackMessage decode(Object result) {
+    result as List<Object?>;
+    return TrackMessage(
+      textureId: result[0]! as int,
+      language: result[1]! as String,
+    );
+  }
+}
+
 class CreateMessage {
   CreateMessage({
     this.asset,
@@ -172,8 +198,7 @@ class CreateMessage {
       uri: result[1] as String?,
       packageName: result[2] as String?,
       formatHint: result[3] as String?,
-      httpHeaders:
-          (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
+      httpHeaders: (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
     );
   }
 }
@@ -201,6 +226,7 @@ class MixWithOthersMessage {
 
 class _AndroidVideoPlayerApiCodec extends StandardMessageCodec {
   const _AndroidVideoPlayerApiCodec();
+
   @override
   void writeValue(WriteBuffer buffer, Object? value) {
     if (value is CreateMessage) {
@@ -223,6 +249,9 @@ class _AndroidVideoPlayerApiCodec extends StandardMessageCodec {
       writeValue(buffer, value.encode());
     } else if (value is VolumeMessage) {
       buffer.putUint8(134);
+      writeValue(buffer, value.encode());
+    } else if (value is TrackMessage) {
+      buffer.putUint8(135);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -256,8 +285,7 @@ class AndroidVideoPlayerApi {
   /// Constructor for [AndroidVideoPlayerApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  AndroidVideoPlayerApi({BinaryMessenger? binaryMessenger})
-      : _binaryMessenger = binaryMessenger;
+  AndroidVideoPlayerApi({BinaryMessenger? binaryMessenger}) : _binaryMessenger = binaryMessenger;
   final BinaryMessenger? _binaryMessenger;
 
   static const MessageCodec<Object?> codec = _AndroidVideoPlayerApiCodec();
@@ -287,8 +315,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.create', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -314,8 +341,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.dispose', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -336,8 +362,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.setLooping', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -358,8 +383,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.setVolume', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -380,8 +404,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.setPlaybackSpeed', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -402,8 +425,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.play', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -424,8 +446,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.position', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -447,12 +468,59 @@ class AndroidVideoPlayerApi {
     }
   }
 
+  Future<String> getSupportTracks(TextureMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.AndroidVideoPlayerApi.getSupportTracks', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as String)!;
+    }
+  }
+
   Future<void> seekTo(PositionMessage arg_msg) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.seekTo', codec,
         binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  Future<void> setTextTrack(TrackMessage arg_msg) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.AndroidVideoPlayerApi.setTextTrack', codec,
+        binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+        await channel.send(<Object?>[arg_msg.textureId, arg_msg.language]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -473,8 +541,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.pause', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -495,8 +562,7 @@ class AndroidVideoPlayerApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.AndroidVideoPlayerApi.setMixWithOthers', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

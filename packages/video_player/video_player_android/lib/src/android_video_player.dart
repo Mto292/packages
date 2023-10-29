@@ -113,24 +113,32 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
 
   @override
   Future<Duration> getPosition(int textureId) async {
-    final PositionMessage response =
-        await _api.position(TextureMessage(textureId: textureId));
+    final PositionMessage response = await _api.position(TextureMessage(textureId: textureId));
     return Duration(milliseconds: response.position);
+  }
+
+  Future<String> getSupportTracks(int textureId) async {
+    final String response = await _api.getSupportTracks(TextureMessage(textureId: textureId));
+    return response;
+  }
+
+  Future<void> setTextTrack(int textureId, String language) {
+    return _api.setTextTrack(TrackMessage(
+      textureId: textureId,
+      language: language,
+    ));
   }
 
   @override
   Stream<VideoEvent> videoEventsFor(int textureId) {
-    return _eventChannelFor(textureId)
-        .receiveBroadcastStream()
-        .map((dynamic event) {
+    return _eventChannelFor(textureId).receiveBroadcastStream().map((dynamic event) {
       final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
           return VideoEvent(
             eventType: VideoEventType.initialized,
             duration: Duration(milliseconds: map['duration'] as int),
-            size: Size((map['width'] as num?)?.toDouble() ?? 0.0,
-                (map['height'] as num?)?.toDouble() ?? 0.0),
+            size: Size((map['width'] as num?)?.toDouble() ?? 0.0, (map['height'] as num?)?.toDouble() ?? 0.0),
             rotationCorrection: map['rotationCorrection'] as int? ?? 0,
           );
         case 'completed':
@@ -153,6 +161,12 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
             eventType: VideoEventType.isPlayingStateUpdate,
             isPlaying: map['isPlaying'] as bool,
           );
+        case 'cueUpdate':
+        /// TODO MTO
+          return VideoEvent(
+            eventType: VideoEventType.unknown,
+            isPlaying: map['cue'] as bool,
+          );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
       }
@@ -166,16 +180,14 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
 
   @override
   Future<void> setMixWithOthers(bool mixWithOthers) {
-    return _api
-        .setMixWithOthers(MixWithOthersMessage(mixWithOthers: mixWithOthers));
+    return _api.setMixWithOthers(MixWithOthersMessage(mixWithOthers: mixWithOthers));
   }
 
   EventChannel _eventChannelFor(int textureId) {
     return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
   }
 
-  static const Map<VideoFormat, String> _videoFormatStringMap =
-      <VideoFormat, String>{
+  static const Map<VideoFormat, String> _videoFormatStringMap = <VideoFormat, String>{
     VideoFormat.ss: 'ss',
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',

@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:video_player_android/video_player_android.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 VideoPlayerPlatform? _cachedPlatform;
@@ -39,18 +40,15 @@ class VideoPlayerValue {
     this.isBuffering = false,
     this.playbackSpeed = 1.0,
     this.errorDescription,
+    this.subTitle,
   });
 
   /// Returns an instance for a video that hasn't been loaded.
-  const VideoPlayerValue.uninitialized()
-      : this(duration: Duration.zero, isInitialized: false);
+  const VideoPlayerValue.uninitialized() : this(duration: Duration.zero, isInitialized: false);
 
   /// Returns an instance with the given [errorDescription].
   const VideoPlayerValue.erroneous(String errorDescription)
-      : this(
-            duration: Duration.zero,
-            isInitialized: false,
-            errorDescription: errorDescription);
+      : this(duration: Duration.zero, isInitialized: false, errorDescription: errorDescription);
 
   /// The total duration of the video.
   ///
@@ -82,6 +80,8 @@ class VideoPlayerValue {
 
   /// Indicates whether or not the video has been loaded and is ready to play.
   final bool isInitialized;
+
+  final String? subTitle;
 
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
@@ -116,6 +116,7 @@ class VideoPlayerValue {
     bool? isBuffering,
     double? playbackSpeed,
     String? errorDescription,
+    String? subTitle,
   }) {
     return VideoPlayerValue(
       duration: duration ?? this.duration,
@@ -127,6 +128,7 @@ class VideoPlayerValue {
       isBuffering: isBuffering ?? this.isBuffering,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       errorDescription: errorDescription ?? this.errorDescription,
+      subTitle: subTitle ?? this.subTitle,
     );
   }
 
@@ -243,8 +245,7 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
         break;
     }
 
-    _textureId = (await _platform.create(dataSourceDescription)) ??
-        kUninitializedTextureId;
+    _textureId = (await _platform.create(dataSourceDescription)) ?? kUninitializedTextureId;
     _creatingCompleter!.complete(null);
     final Completer<void> initializingCompleter = Completer<void>();
 
@@ -277,6 +278,11 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isPlaying: event.isPlaying);
           break;
         case VideoEventType.unknown:
+          /// TODO MTO
+          try {
+            debugPrint('Burası: $event');
+            value = value.copyWith(subTitle: event.isPlaying);
+          } catch (_) {}
           break;
       }
     }
@@ -290,9 +296,7 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
       }
     }
 
-    _eventSubscription = _platform
-        .videoEventsFor(_textureId)
-        .listen(eventListener, onError: errorListener);
+    _eventSubscription = _platform.videoEventsFor(_textureId).listen(eventListener, onError: errorListener);
     return initializingCompleter.future;
   }
 
@@ -371,6 +375,17 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
     await _applyPlaybackSpeed();
   }
 
+  Future<void> getSupportTracks() async {
+    final AndroidVideoPlayer videoPlayer = _platform as AndroidVideoPlayer;
+    final String result = await videoPlayer.getSupportTracks(textureId);
+    debugPrint(result);
+  }
+
+  Future<void> setTextTrack() async {
+    final AndroidVideoPlayer videoPlayer = _platform as AndroidVideoPlayer;
+    await videoPlayer.setTextTrack(textureId, 'tr');
+  }
+
   void _updatePosition(Duration position) {
     value = value.copyWith(position: position);
   }
@@ -430,9 +445,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return _textureId == MiniController.kUninitializedTextureId
-        ? Container()
-        : _platform.buildView(_textureId);
+    return _textureId == MiniController.kUninitializedTextureId ? Container() : _platform.buildView(_textureId);
   }
 }
 

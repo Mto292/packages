@@ -114,7 +114,7 @@ class _BumbleBeeRemoteVideoState extends State<_BumbleBeeRemoteVideo> {
   void initState() {
     super.initState();
     _controller = MiniController.network(
-      'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+      'http://deluxevip.xyz:8080/movie/Patara/DYyWMPXehq/267705.mkv',
     );
 
     _controller.addListener(() {
@@ -149,6 +149,24 @@ class _BumbleBeeRemoteVideoState extends State<_BumbleBeeRemoteVideo> {
                 ],
               ),
             ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _controller.getSupportTracks();
+            },
+            child: Text('Get Supported Tracks'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _controller.setTextTrack();
+            },
+            child: Text('Set Tr Track'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _controller.seekTo(Duration(minutes: 30));
+            },
+            child: Text('Sneek To'),
           ),
         ],
       ),
