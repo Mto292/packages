@@ -6,6 +6,7 @@
 // package for use in all implementation packages.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -13,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player_android/video_player_android.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
+
+import 'langauge_track_model.dart';
 
 VideoPlayerPlatform? _cachedPlatform;
 
@@ -30,7 +33,7 @@ VideoPlayerPlatform get _platform {
 class VideoPlayerValue {
   /// Constructs a video with the given values. Only [duration] is required. The
   /// rest will initialize with default values when unset.
-  const VideoPlayerValue({
+  VideoPlayerValue({
     required this.duration,
     this.size = Size.zero,
     this.position = Duration.zero,
@@ -41,13 +44,16 @@ class VideoPlayerValue {
     this.playbackSpeed = 1.0,
     this.errorDescription,
     this.subTitle,
-  });
+  }) {
+    final String? e = subTitle;
+    final String? ee = subTitle;
+  }
 
   /// Returns an instance for a video that hasn't been loaded.
-  const VideoPlayerValue.uninitialized() : this(duration: Duration.zero, isInitialized: false);
+  VideoPlayerValue.uninitialized() : this(duration: Duration.zero, isInitialized: false);
 
   /// Returns an instance with the given [errorDescription].
-  const VideoPlayerValue.erroneous(String errorDescription)
+  VideoPlayerValue.erroneous(String errorDescription)
       : this(duration: Duration.zero, isInitialized: false, errorDescription: errorDescription);
 
   /// The total duration of the video.
@@ -81,7 +87,7 @@ class VideoPlayerValue {
   /// Indicates whether or not the video has been loaded and is ready to play.
   final bool isInitialized;
 
-  final String? subTitle;
+  String? subTitle;
 
   /// Indicates whether or not the video is in an error state. If this is true
   /// [errorDescription] should have information about the problem.
@@ -118,7 +124,7 @@ class VideoPlayerValue {
     String? errorDescription,
     String? subTitle,
   }) {
-    return VideoPlayerValue(
+    final VideoPlayerValue model = VideoPlayerValue(
       duration: duration ?? this.duration,
       size: size ?? this.size,
       position: position ?? this.position,
@@ -130,6 +136,7 @@ class VideoPlayerValue {
       errorDescription: errorDescription ?? this.errorDescription,
       subTitle: subTitle ?? this.subTitle,
     );
+    return model;
   }
 
   @override
@@ -171,21 +178,21 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
   /// package and null otherwise.
   MiniController.asset(this.dataSource, {this.package})
       : dataSourceType = DataSourceType.asset,
-        super(const VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(duration: Duration.zero));
 
   /// Constructs a [MiniController] playing a video from obtained from
   /// the network.
   MiniController.network(this.dataSource)
       : dataSourceType = DataSourceType.network,
         package = null,
-        super(const VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(duration: Duration.zero));
 
   /// Constructs a [MiniController] playing a video from obtained from a file.
   MiniController.file(File file)
       : dataSource = Uri.file(file.absolute.path).toString(),
         dataSourceType = DataSourceType.file,
         package = null,
-        super(const VideoPlayerValue(duration: Duration.zero));
+        super(VideoPlayerValue(duration: Duration.zero));
 
   /// The URI to the video file. This will be in different formats depending on
   /// the [DataSourceType] of the original video.
@@ -277,12 +284,10 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.isPlayingStateUpdate:
           value = value.copyWith(isPlaying: event.isPlaying);
           break;
+        case VideoEventType.subTitle:
+          value.subTitle = event.subTitle ?? value.subTitle;
+          break;
         case VideoEventType.unknown:
-          /// TODO MTO
-          try {
-            debugPrint('Burası: $event');
-            value = value.copyWith(subTitle: event.isPlaying);
-          } catch (_) {}
           break;
       }
     }
@@ -375,15 +380,40 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
     await _applyPlaybackSpeed();
   }
 
-  Future<void> getSupportTracks() async {
+  Future<void> getSupportTracks(BuildContext context) async {
     final AndroidVideoPlayer videoPlayer = _platform as AndroidVideoPlayer;
     final String result = await videoPlayer.getSupportTracks(textureId);
-    debugPrint(result);
+    try {
+      final LanguageTrackModel list = LanguageTrackModel().jsonParser(result) as LanguageTrackModel;
+      await showModalBottomSheet(
+          context: context,
+          builder: (BuildContext context) {
+            return Column(
+              children: list.text!
+                  .map(
+                    (LanguageItemModel e) => GestureDetector(
+                      onTap: () {
+                        if (e.language != null) {
+                          setTextTrack(e.language!);
+                        }
+                      },
+                      child: Text(
+                        e.label ?? '',
+                      ),
+                    ),
+                  )
+                  .toList(),
+            );
+          });
+      debugPrint(result);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
-  Future<void> setTextTrack() async {
+  Future<void> setTextTrack(String language) async {
     final AndroidVideoPlayer videoPlayer = _platform as AndroidVideoPlayer;
-    await videoPlayer.setTextTrack(textureId, 'tr');
+    await videoPlayer.setTextTrack(textureId, language);
   }
 
   void _updatePosition(Duration position) {
@@ -502,6 +532,8 @@ class VideoProgressIndicator extends StatefulWidget {
 }
 
 class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
+  String? subTitle;
+
   _VideoProgressIndicatorState() {
     listener = () {
       if (mounted) {
@@ -533,6 +565,7 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
     const Color backgroundColor = Color.fromRGBO(200, 200, 200, 0.5);
 
     Widget progressIndicator;
+    subTitle = controller.value.subTitle;
     if (controller.value.isInitialized) {
       final int duration = controller.value.duration.inMilliseconds;
       final int position = controller.value.position.inMilliseconds;
@@ -566,12 +599,25 @@ class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
         backgroundColor: backgroundColor,
       );
     }
-    return _VideoScrubber(
-      controller: controller,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 5.0),
-        child: progressIndicator,
-      ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Text(
+          subTitle ?? 'Subtitle',
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.white,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        _VideoScrubber(
+          controller: controller,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 5.0),
+            child: progressIndicator,
+          ),
+        ),
+      ],
     );
   }
 }

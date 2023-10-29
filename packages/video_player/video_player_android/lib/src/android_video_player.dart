@@ -162,10 +162,9 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
             isPlaying: map['isPlaying'] as bool,
           );
         case 'cueUpdate':
-        /// TODO MTO
           return VideoEvent(
-            eventType: VideoEventType.unknown,
-            isPlaying: map['cue'] as bool,
+            eventType: VideoEventType.subTitle,
+            subTitle: map['cue'] as String,
           );
         default:
           return VideoEvent(eventType: VideoEventType.unknown);

@@ -218,6 +218,7 @@ class VideoEvent {
     this.rotationCorrection,
     this.buffered,
     this.isPlaying,
+    this.subTitle,
   });
 
   /// The type of the event.
@@ -248,6 +249,8 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.isPlayingStateUpdate].
   final bool? isPlaying;
 
+  final String? subTitle;
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -258,7 +261,8 @@ class VideoEvent {
             size == other.size &&
             rotationCorrection == other.rotationCorrection &&
             listEquals(buffered, other.buffered) &&
-            isPlaying == other.isPlaying;
+            isPlaying == other.isPlaying &&
+            subTitle == other.subTitle;
   }
 
   @override
@@ -269,6 +273,7 @@ class VideoEvent {
         rotationCorrection,
         buffered,
         isPlaying,
+        subTitle,
       );
 }
 
@@ -300,6 +305,9 @@ enum VideoEventType {
 
   /// An unknown event has been received.
   unknown,
+
+  /// text track
+  subTitle,
 }
 
 /// Describes a discrete segment of time within a video using a [start] and
@@ -352,16 +360,12 @@ class DurationRange {
   }
 
   @override
-  String toString() =>
-      '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
+  String toString() => '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is DurationRange &&
-          runtimeType == other.runtimeType &&
-          start == other.start &&
-          end == other.end;
+      other is DurationRange && runtimeType == other.runtimeType && start == other.start && end == other.end;
 
   @override
   int get hashCode => Object.hash(start, end);

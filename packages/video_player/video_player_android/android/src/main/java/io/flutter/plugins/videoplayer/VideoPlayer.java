@@ -192,15 +192,17 @@ final class VideoPlayer {
 
             @Override
             public void onCues(CueGroup cueGroup) {
-                Player.Listener.super.onCues(cueGroup);
-                if (cueGroup.cues.size() > 0) {
-                    String txt = cueGroup.cues.get(0).text.toString();
-                    System.out.println("SubTitle: " + txt);
+                try {
+                    Player.Listener.super.onCues(cueGroup);
+                    String txt = "";
+                    if (cueGroup.cues.size() > 0 && cueGroup.cues.get(0).text != null) {
+                        txt = cueGroup.cues.get(0).text.toString();
+                    }
                     Map<String, Object> event = new HashMap<>();
                     event.put("event", "cueUpdate");
                     event.put("cue", txt);
                     eventSink.success(event);
-                }
+                } catch (Exception ignored) {}
             }
 
             public void setBuffering(boolean buffering) {
@@ -338,38 +340,8 @@ final class VideoPlayer {
                     exoPlayer
                             .getTrackSelectionParameters()
                             .buildUpon()
-                            .setPreferredTextLanguage("tr")
+                            .setPreferredTextLanguage(language)
                             .build());
-
-
-/*            Tracks tracks = exoPlayer.getCurrentTracks();
-            Tracks.Group selectedTrack = null;
-            for (int i = 0; i < SUPPORTED_TRACK_TYPES.size(); i++) {
-                for (Tracks.Group trackGroup : tracks.getGroups()) {
-                    for (int trackIndex = 0; trackIndex < trackGroup.length; trackIndex++) {
-
-                    }
-                    if (trackGroup.getType() == C.TRACK_TYPE_TEXT && Objects.equals(trackGroup.getMediaTrackGroup().getFormat(0).language, language)) {
-                        selectedTrack = trackGroup;
-                    }
-                }
-            }
-
-            builder.setTrackTypeDisabled(3, false);
-            builder.clearOverridesOfType(3);
-
-            TrackGroup mediaTrackGroup = selectedTrack.getMediaTrackGroup();
-            int trackIndex = mediaTrackGroup.trackIndex;
-            Map<TrackGroup, TrackSelectionOverride> overrides = new HashMap<>();
-            overrides.put(
-                    selectedTrack,
-                    new TrackSelectionOverride(selectedTrack, ImmutableList.of(trackIndex)));
-
-            Map<TrackGroup, TrackSelectionOverride> overrides = trackSelectionDialog.getOverrides(trackType);
-            for (TrackSelectionOverride override : overrides.values()) {
-                builder.addOverride(override);
-            }*/
-
         } catch (Exception e) {
         }
     }

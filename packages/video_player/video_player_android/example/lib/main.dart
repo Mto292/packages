@@ -152,15 +152,9 @@ class _BumbleBeeRemoteVideoState extends State<_BumbleBeeRemoteVideo> {
           ),
           ElevatedButton(
             onPressed: () {
-              _controller.getSupportTracks();
+              _controller.getSupportTracks(context);
             },
             child: Text('Get Supported Tracks'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              _controller.setTextTrack();
-            },
-            child: Text('Set Tr Track'),
           ),
           ElevatedButton(
             onPressed: () {
