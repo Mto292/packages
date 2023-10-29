@@ -107,6 +107,14 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   Future<void> setWebOptions(int textureId, VideoPlayerWebOptions options) {
     throw UnimplementedError('setWebOptions() has not been implemented.');
   }
+
+  Future<String> getSupportTracks(int textureId) async {
+    throw UnimplementedError('getSupportTracks() has not been implemented.');
+  }
+
+  Future<void> setTextTrack(int textureId, String language) {
+    throw UnimplementedError('setTextTrack() has not been implemented.');
+  }
 }
 
 class _PlaceholderImplementation extends VideoPlayerPlatform {}
