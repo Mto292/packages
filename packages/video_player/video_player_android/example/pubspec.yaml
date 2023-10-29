@@ -23,7 +23,7 @@ dependencies:
     git:
       url: https://github.com/Mto292/packages.git
       path: packages/video_player/video_player_platform_interface
-      ref: c27a98aa5b8671c3589a80bdd3d7918d292a57a7
+      ref: f70cd9c109d8e586c807afd18fe2f6a177147939
 
 dev_dependencies:
   flutter_test:

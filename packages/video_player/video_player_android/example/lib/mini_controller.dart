@@ -381,8 +381,7 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
   }
 
   Future<void> getSupportTracks(BuildContext context) async {
-    final AndroidVideoPlayer videoPlayer = _platform as AndroidVideoPlayer;
-    final String result = await videoPlayer.getSupportTracks(textureId);
+    final String result = await _platform.getSupportTracks(textureId);
     try {
       final LanguageTrackModel list = LanguageTrackModel().jsonParser(result) as LanguageTrackModel;
       await showModalBottomSheet(
@@ -412,8 +411,7 @@ class MiniController extends ValueNotifier<VideoPlayerValue> {
   }
 
   Future<void> setTextTrack(String language) async {
-    final AndroidVideoPlayer videoPlayer = _platform as AndroidVideoPlayer;
-    await videoPlayer.setTextTrack(textureId, language);
+    await _platform.setTextTrack(textureId, language);
   }
 
   void _updatePosition(Duration position) {
