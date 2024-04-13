@@ -21,8 +21,12 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
-  video_player_platform_interface: ">=6.1.0 <7.0.0"
-
+  # video_player_platform_interface: ">=6.1.0 <7.0.0"
+  video_player_platform_interface:
+    git:
+      url: https://github.com/Mto292/packages.git
+      path: packages/video_player/video_player_platform_interface
+      ref: f70cd9c109d8e586c807afd18fe2f6a177147939
 dev_dependencies:
   flutter_test:
     sdk: flutter
